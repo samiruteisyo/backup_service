@@ -176,15 +176,13 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 10 — Systemd & Caddy Integration
+## Phase 10 — Systemd & Caddy Integration ~~DONE~~
 
 - `backup-service.service` — systemd unit file:
   - `After=network.target docker.service`
   - `EnvironmentFile=/home/sameer/backup_service/.env`
   - Auto-restart on failure
-- Caddy reverse proxy config:
-  - `backups.samiruteisyo.com { reverse_proxy localhost:8090 }`
-- Remove old `.env` DOMAIN variable (no longer needed), keep `AUTH_USER` + `AUTH_PASS`
+- Caddy integration skipped — service runs directly on `WEB_PORT` (default 8090)
 
 ---
 
