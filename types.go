@@ -12,15 +12,15 @@ const (
 )
 
 type Config struct {
-	ScanPath      string
-	BackupPath    string
-	Schedule      string
-	RetentionDays int
+	ScanPath       string
+	BackupPath     string
+	Schedule       string
+	RetentionDays  int
 	RetentionWeeks int
-	SkipDirs      []string
-	WebPort       int
-	AuthUser      string
-	AuthPass      string
+	SkipDirs       []string
+	WebPort        int
+	AuthUser       string
+	AuthPass       string
 }
 
 type DatabaseInfo struct {
@@ -39,7 +39,7 @@ type DBCredentials struct {
 }
 
 type BindMount struct {
-	Source       string
+	Source        string
 	ContainerPath string
 }
 
@@ -85,23 +85,23 @@ type RotationResult struct {
 }
 
 type ProjectStatus struct {
-	Project      *Project
-	Branch       string
-	SHA          string
-	Ahead        int
-	Behind       int
-	LastBackup   *time.Time
-	LastDeploy   *Deployment
-	BackupCount  int
-	TotalSize    int64
+	Project     *Project
+	Branch      string
+	SHA         string
+	Ahead       int
+	Behind      int
+	LastBackup  *time.Time
+	LastDeploy  *Deployment
+	BackupCount int
+	TotalSize   int64
 }
 
 type ComposeService struct {
-	Image         string                 `yaml:"image"`
-	ContainerName string                 `yaml:"container_name"`
-	Build         interface{}            `yaml:"build"`
-	Environment   map[string]interface{} `yaml:"environment"`
-	Volumes       []interface{}          `yaml:"volumes"`
+	Image         string      `yaml:"image"`
+	ContainerName string      `yaml:"container_name"`
+	Build         interface{} `yaml:"build"`
+	Environment   interface{} `yaml:"environment"`
+	Volumes       interface{} `yaml:"volumes"`
 }
 
 type ComposeFile struct {
