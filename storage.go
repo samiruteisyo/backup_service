@@ -7,14 +7,14 @@ import (
 )
 
 type backupFile struct {
-	name    string
-	path    string
-	mtime   time.Time
-	size    int64
+	name  string
+	path  string
+	mtime time.Time
+	size  int64
 }
 
 func rotateBackups(config *Config, serviceName string) *RotationResult {
-	serviceDir := filepath.Join(config.BackupPath, serviceName)
+	serviceDir := filepath.Join(getBackupPath(), serviceName)
 
 	var kept, deleted int
 
@@ -26,6 +26,9 @@ func rotateBackups(config *Config, serviceName string) *RotationResult {
 	var backups []backupFile
 	for _, entry := range entries {
 		if entry.IsDir() {
+			continue
+		}
+		if !isBackupFile(entry.Name()) {
 			continue
 		}
 		info, err := entry.Info()
@@ -52,11 +55,7 @@ func rotateBackups(config *Config, serviceName string) *RotationResult {
 
 		if ageDays <= float64(config.RetentionWeeks*7) {
 			weekStart := getStartOfWeek(b.mtime)
-			prefix := "db"
-			if len(b.name) > 4 && b.name[:4] == "file" {
-				prefix = "files"
-			}
-			weekKey := prefix + "_" + weekStart.Format("2006-01-02")
+			weekKey := weekStart.Format("2006-01-02")
 
 			if !weeklyKept[weekKey] {
 				weeklyKept[weekKey] = true

@@ -3,105 +3,44 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 )
 
-func backupDatabase(project *Project, backupPath string) *BackupResult {
-	timestamp := time.Now().UTC().Format("2006-01-02T15-04-05Z")
-	extension := "sql.gz"
-	if project.Database.Type == DBMongo {
-		extension = "archive.gz"
-	}
-	archivePath := filepath.Join(backupPath, project.Name, fmt.Sprintf("db_%s.%s", timestamp, extension))
-
-	saveBackupMeta(project, backupPath, timestamp)
-
+func dumpDatabase(project *Project, tmpDir string) (string, error) {
 	if project.Database == nil {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "database",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "skipped",
-			Message:     "No database detected",
-		}
+		return "", fmt.Errorf("no database detected")
 	}
 
 	db := project.Database
 	resolvedName := resolveContainerName(db, project.Name)
 
 	if resolvedName == "" {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "database",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "skipped",
-			Message:     fmt.Sprintf("Database container '%s' is not running", db.ServiceName),
-		}
+		return "", fmt.Errorf("database container '%s' is not running", db.ServiceName)
 	}
 
 	db.ContainerName = resolvedName
 
-	if err := os.MkdirAll(filepath.Dir(archivePath), 0755); err != nil {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "database",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "error",
-			Message:     fmt.Sprintf("Failed to create directory: %v", err),
-		}
+	extension := "sql.gz"
+	if db.Type == DBMongo {
+		extension = "archive.gz"
 	}
+	dumpPath := filepath.Join(tmpDir, "db."+extension)
 
 	dumpCmd := getDumpCommand(db)
-	fullCmd := fmt.Sprintf("%s | gzip > %s", dumpCmd, archivePath)
+	fullCmd := fmt.Sprintf("%s | gzip > %s", dumpCmd, dumpPath)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Second)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "bash", "-c", fullCmd)
 	if output, err := cmd.CombinedOutput(); err != nil {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "database",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "error",
-			Message:     fmt.Sprintf("Backup failed: %v\n%s", err, string(output)),
-		}
+		return "", fmt.Errorf("backup failed: %v\n%s", err, string(output))
 	}
 
-	stat, err := os.Stat(archivePath)
-	if err != nil {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "database",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "error",
-			Message:     fmt.Sprintf("Failed to stat backup file: %v", err),
-		}
-	}
-
-	return &BackupResult{
-		ServiceName: project.Name,
-		Type:        "database",
-		FilePath:    archivePath,
-		SizeBytes:   stat.Size(),
-		Timestamp:   time.Now(),
-		Status:      "success",
-		Message:     fmt.Sprintf("%s database '%s' backed up from '%s'", db.Type, db.Credentials.Database, db.ContainerName),
-	}
+	return dumpPath, nil
 }
 
 func resolveContainerName(db *DatabaseInfo, projectName string) string {

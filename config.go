@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -34,7 +35,6 @@ func loadConfig() *Config {
 
 	return &Config{
 		ScanPath:       getEnv("SCAN_PATH", "/home/sameer"),
-		BackupPath:     getEnv("BACKUP_PATH", "/home/sameer/backups"),
 		Schedule:       getEnv("SCHEDULE", "0 3 * * *"),
 		RetentionDays:  getEnvInt("RETENTION_DAYS", 7),
 		RetentionWeeks: getEnvInt("RETENTION_WEEKS", 4),
@@ -43,4 +43,12 @@ func loadConfig() *Config {
 		AuthUser:       getEnv("AUTH_USER", "admin"),
 		AuthPass:       getEnv("AUTH_PASS", "changeme"),
 	}
+}
+
+func getBackupPath() string {
+	exe, err := os.Executable()
+	if err != nil {
+		return filepath.Join(".", "backups")
+	}
+	return filepath.Join(filepath.Dir(exe), "backups")
 }

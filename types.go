@@ -13,7 +13,6 @@ const (
 
 type Config struct {
 	ScanPath       string
-	BackupPath     string
 	Schedule       string
 	RetentionDays  int
 	RetentionWeeks int

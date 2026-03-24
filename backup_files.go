@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 )
 
 var skipDirs = map[string]bool{
@@ -24,22 +23,11 @@ var skipDirs = map[string]bool{
 	".nyc_output":  true,
 }
 
-func backupFiles(project *Project, backupPath string) *BackupResult {
-	timestamp := time.Now().UTC().Format("2006-01-02T15-04-05Z")
-	archivePath := filepath.Join(backupPath, project.Name, fmt.Sprintf("files_%s.tar.gz", timestamp))
-
-	saveBackupMeta(project, backupPath, timestamp)
+func createFilesArchive(project *Project, tmpDir string) (string, int64, error) {
+	archivePath := filepath.Join(tmpDir, "files.tar.gz")
 
 	if len(project.BindMounts) == 0 {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "files",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "skipped",
-			Message:     "No bind mounts found",
-		}
+		return "", 0, fmt.Errorf("no bind mounts found")
 	}
 
 	projectDir := project.ProjectDir
@@ -74,51 +62,15 @@ func backupFiles(project *Project, backupPath string) *BackupResult {
 	}
 
 	if len(allFiles) == 0 {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "files",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "skipped",
-			Message:     "No files to backup (all tracked by git)",
-		}
-	}
-
-	if err := os.MkdirAll(filepath.Dir(archivePath), 0755); err != nil {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "files",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "error",
-			Message:     fmt.Sprintf("Failed to create directory: %v", err),
-		}
+		return "", 0, fmt.Errorf("no files to backup (all tracked by git)")
 	}
 
 	sizeBytes, err := createTarGz(archivePath, allFiles)
 	if err != nil {
-		return &BackupResult{
-			ServiceName: project.Name,
-			Type:        "files",
-			FilePath:    archivePath,
-			SizeBytes:   0,
-			Timestamp:   time.Now(),
-			Status:      "error",
-			Message:     fmt.Sprintf("Failed to create archive: %v", err),
-		}
+		return "", 0, fmt.Errorf("failed to create archive: %v", err)
 	}
 
-	return &BackupResult{
-		ServiceName: project.Name,
-		Type:        "files",
-		FilePath:    archivePath,
-		SizeBytes:   sizeBytes,
-		Timestamp:   time.Now(),
-		Status:      "success",
-		Message:     fmt.Sprintf("%d files backed up", len(allFiles)),
-	}
+	return archivePath, sizeBytes, nil
 }
 
 func getGitTrackedFiles(projectDir string) map[string]bool {

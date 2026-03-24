@@ -1,6 +1,8 @@
 package main
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -62,6 +64,7 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 
 	config := loadConfig()
 	composePaths := discoverServices(config)
+	backupPath := getBackupPath()
 
 	type projectSummary struct {
 		Name        string      `json:"name"`
@@ -96,12 +99,12 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 			summary.GitStatus = gitStatus
 		}
 
-		backupDir := filepath.Join(config.BackupPath, project.Name)
+		backupDir := filepath.Join(backupPath, project.Name)
 		entries, err := os.ReadDir(backupDir)
 		if err == nil {
 			var lastMod time.Time
 			for _, e := range entries {
-				if e.IsDir() {
+				if e.IsDir() || !isBackupFile(e.Name()) {
 					continue
 				}
 				info, _ := e.Info()
@@ -109,10 +112,8 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 					if info.ModTime().After(lastMod) {
 						lastMod = info.ModTime()
 					}
-					if strings.HasPrefix(e.Name(), "db_") || strings.HasPrefix(e.Name(), "files_") {
-						summary.BackupCount++
-						summary.TotalSize += info.Size()
-					}
+					summary.BackupCount++
+					summary.TotalSize += info.Size()
 				}
 			}
 			if !lastMod.IsZero() {
@@ -120,7 +121,7 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		deployments := loadDeployments(project.Name, config.BackupPath)
+		deployments := loadDeployments(project.Name, backupPath)
 		if len(deployments) > 0 {
 			summary.LastDeploy = &deployments[len(deployments)-1]
 		}
@@ -203,10 +204,10 @@ func findProject(name string, config *Config) *Project {
 }
 
 func handleProjectInfo(w http.ResponseWriter, r *http.Request, project *Project, config *Config) {
-	backupDir := filepath.Join(config.BackupPath, project.Name)
+	backupPath := getBackupPath()
+	backupDir := filepath.Join(backupPath, project.Name)
 
 	type backupEntry struct {
-		Type      string    `json:"type"`
 		File      string    `json:"file"`
 		Size      int64     `json:"size"`
 		Timestamp time.Time `json:"timestamp"`
@@ -217,13 +218,8 @@ func handleProjectInfo(w http.ResponseWriter, r *http.Request, project *Project,
 	var backups []backupEntry
 	entries, err := os.ReadDir(backupDir)
 	if err == nil {
-		metaCache := make(map[string]*BackupMeta)
 		for _, e := range entries {
-			if e.IsDir() {
-				continue
-			}
-			name := e.Name()
-			if !strings.HasPrefix(name, "db_") && !strings.HasPrefix(name, "files_") {
+			if e.IsDir() || !isBackupFile(e.Name()) {
 				continue
 			}
 			info, _ := e.Info()
@@ -231,25 +227,18 @@ func handleProjectInfo(w http.ResponseWriter, r *http.Request, project *Project,
 				continue
 			}
 
-			bType := "database"
-			if strings.HasPrefix(name, "files_") {
-				bType = "files"
-			}
-
+			name := e.Name()
 			ts := extractTimestampFromFilename(name)
 			sha, branch := "", ""
 			if ts != "" {
-				if _, ok := metaCache[ts]; !ok {
-					metaCache[ts] = loadBackupMeta(config.BackupPath, project.Name, ts)
-				}
-				if m := metaCache[ts]; m != nil {
-					sha = shortSHA(m.SHA)
-					branch = m.Branch
+				meta := loadBackupMetaFromArchive(backupDir, name)
+				if meta != nil {
+					sha = shortSHA(meta.SHA)
+					branch = meta.Branch
 				}
 			}
 
 			backups = append(backups, backupEntry{
-				Type:      bType,
 				File:      name,
 				Size:      info.Size(),
 				Timestamp: info.ModTime(),
@@ -262,7 +251,7 @@ func handleProjectInfo(w http.ResponseWriter, r *http.Request, project *Project,
 		})
 	}
 
-	deployments := loadDeployments(project.Name, config.BackupPath)
+	deployments := loadDeployments(project.Name, backupPath)
 
 	activityPath := filepath.Join(backupDir, "activity.json")
 	var activities []Activity
@@ -284,6 +273,66 @@ func handleProjectInfo(w http.ResponseWriter, r *http.Request, project *Project,
 	})
 }
 
+func loadBackupMetaFromArchive(backupDir string, archiveName string) *BackupMeta {
+	archivePath := filepath.Join(backupDir, archiveName)
+
+	tmpDir, err := os.MkdirTemp("", "meta-read-")
+	if err != nil {
+		return nil
+	}
+	defer os.RemoveAll(tmpDir)
+
+	if err := extractMetaFromArchive(archivePath, tmpDir); err != nil {
+		return nil
+	}
+
+	return loadMetaFromDir(tmpDir)
+}
+
+func extractMetaFromArchive(archivePath string, destDir string) error {
+	f, err := os.Open(archivePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	gz, err := gzip.NewReader(f)
+	if err != nil {
+		return err
+	}
+	defer gz.Close()
+
+	tr := tar.NewReader(gz)
+
+	for {
+		header, err := tr.Next()
+		if err != nil {
+			break
+		}
+		if header.Name != "meta.json" {
+			continue
+		}
+
+		outFile, err := os.OpenFile(filepath.Join(destDir, "meta.json"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		if err != nil {
+			return err
+		}
+
+		buf := make([]byte, 32*1024)
+		for {
+			n, err := tr.Read(buf)
+			if err != nil || n == 0 {
+				outFile.Close()
+				break
+			}
+			outFile.Write(buf[:n])
+		}
+		return nil
+	}
+
+	return fmt.Errorf("meta.json not found in archive")
+}
+
 func handleGitStatus(w http.ResponseWriter, r *http.Request, project *Project) {
 	status, err := getGitStatus(project.ProjectDir)
 	if err != nil {
@@ -296,44 +345,23 @@ func handleGitStatus(w http.ResponseWriter, r *http.Request, project *Project) {
 func handleBackup(w http.ResponseWriter, r *http.Request, project *Project, config *Config) {
 	logActivity(project.Name, "backup", "Manual backup triggered", "running")
 
-	var results []*BackupResult
+	backupPath := getBackupPath()
+	result := backupProject(project, backupPath)
 
-	if project.Database != nil {
-		result := backupDatabase(project, config.BackupPath)
-		results = append(results, result)
-		logActivity(project.Name, "backup", result.Message, result.Status)
-	}
+	logActivity(project.Name, "backup", result.Message, result.Status)
 
-	if len(project.BindMounts) > 0 {
-		result := backupFiles(project, config.BackupPath)
-		results = append(results, result)
-		logActivity(project.Name, "backup", result.Message, result.Status)
-	}
-
-	if len(results) == 0 {
-		logActivity(project.Name, "backup", "Nothing to backup", "skipped")
+	status := result.Status
+	if status == "skipped" {
 		writeJSON(w, http.StatusOK, map[string]interface{}{
 			"status":  "skipped",
-			"message": "nothing to backup",
+			"message": result.Message,
 		})
 		return
 	}
 
-	allSuccess := true
-	for _, r := range results {
-		if r.Status != "success" && r.Status != "skipped" {
-			allSuccess = false
-		}
-	}
-
-	status := "success"
-	if !allSuccess {
-		status = "partial"
-	}
-
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"status":  status,
-		"results": results,
+		"results": []interface{}{result},
 	})
 }
 
@@ -351,7 +379,7 @@ func handleRestore(w http.ResponseWriter, r *http.Request, project *Project, con
 		return
 	}
 
-	result := restoreProject(project, config.BackupPath, body.Timestamp)
+	result := restoreProject(project, getBackupPath(), body.Timestamp)
 
 	if result.Success {
 		writeJSON(w, http.StatusOK, result)
@@ -361,7 +389,7 @@ func handleRestore(w http.ResponseWriter, r *http.Request, project *Project, con
 }
 
 func handleDeploy(w http.ResponseWriter, r *http.Request, project *Project, config *Config) {
-	result := deployProject(project, config.BackupPath)
+	result := deployProject(project, getBackupPath())
 
 	if result.Success {
 		writeJSON(w, http.StatusOK, result)
@@ -384,7 +412,7 @@ func handleRollback(w http.ResponseWriter, r *http.Request, project *Project, co
 		return
 	}
 
-	result := rollbackProject(project, config.BackupPath, body.SHA)
+	result := rollbackProject(project, getBackupPath(), body.SHA)
 
 	if result.Success {
 		writeJSON(w, http.StatusOK, result)
@@ -407,41 +435,25 @@ func handleDeleteBackup(w http.ResponseWriter, r *http.Request, project *Project
 		return
 	}
 
-	backupDir := filepath.Join(config.BackupPath, project.Name)
-	var deleted []string
+	backupPath := getBackupPath()
+	backupDir := filepath.Join(backupPath, project.Name)
 
-	for _, prefix := range []string{"db_", "files_"} {
-		pattern := prefix + body.Timestamp + "*"
-		matches, err := filepath.Glob(filepath.Join(backupDir, pattern))
-		if err != nil {
-			continue
-		}
-		for _, m := range matches {
-			if err := os.Remove(m); err == nil {
-				deleted = append(deleted, filepath.Base(m))
-			}
-		}
-	}
+	backupFile := filepath.Join(backupDir, fmt.Sprintf("backup_%s.tar.gz", body.Timestamp))
 
-	metaFile := filepath.Join(backupDir, body.Timestamp+".json")
-	if err := os.Remove(metaFile); err == nil {
-		deleted = append(deleted, filepath.Base(metaFile))
-	}
-
-	if len(deleted) == 0 {
-		writeError(w, http.StatusNotFound, "no backup files found for that timestamp")
+	if err := os.Remove(backupFile); err != nil {
+		writeError(w, http.StatusNotFound, "no backup file found for that timestamp")
 		return
 	}
 
-	logActivity(project.Name, "delete", fmt.Sprintf("Deleted backup %s: %s", body.Timestamp, strings.Join(deleted, ", ")), "success")
+	logActivity(project.Name, "delete", fmt.Sprintf("Deleted backup %s", body.Timestamp), "success")
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"status":  "success",
-		"deleted": deleted,
+		"deleted": filepath.Base(backupFile),
 	})
 }
 
 func handleDownload(w http.ResponseWriter, r *http.Request) {
-	config := loadConfig()
+	backupPath := getBackupPath()
 
 	pathParts := strings.TrimPrefix(r.URL.Path, "/api/download/")
 	parts := strings.SplitN(pathParts, "/", 2)
@@ -463,7 +475,7 @@ func handleDownload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filePath := filepath.Join(config.BackupPath, projectName, fileName)
+	filePath := filepath.Join(backupPath, projectName, fileName)
 	if _, err := os.Stat(filePath); err != nil {
 		writeError(w, http.StatusNotFound, "file not found")
 		return

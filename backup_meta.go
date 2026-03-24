@@ -4,26 +4,30 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"time"
 )
 
-func saveBackupMeta(project *Project, backupPath string, timestamp string) {
+func writeBackupMeta(project *Project, tmpDir string, timestamp string) error {
 	gitStatus, err := getGitStatus(project.ProjectDir)
 	if err != nil {
-		return
+		gitStatus = nil
 	}
 
 	meta := BackupMeta{
-		SHA:       gitStatus.SHA,
-		Branch:    gitStatus.Branch,
 		Timestamp: timestamp,
 	}
+	if gitStatus != nil {
+		meta.SHA = gitStatus.SHA
+		meta.Branch = gitStatus.Branch
+	}
 
-	metaPath := filepath.Join(backupPath, project.Name, timestamp+".json")
-	os.MkdirAll(filepath.Dir(metaPath), 0755)
+	metaPath := filepath.Join(tmpDir, "meta.json")
 
-	data, _ := json.MarshalIndent(meta, "", "  ")
-	os.WriteFile(metaPath, data, 0644)
+	data, err := json.MarshalIndent(meta, "", "  ")
+	if err != nil {
+		return err
+	}
+
+	return os.WriteFile(metaPath, data, 0644)
 }
 
 func loadBackupMeta(backupPath string, projectName string, timestamp string) *BackupMeta {
@@ -45,33 +49,18 @@ func loadBackupMeta(backupPath string, projectName string, timestamp string) *Ba
 func extractTimestampFromFilename(filename string) string {
 	timestamp := filename
 
-	for _, prefix := range []string{"db_", "files_"} {
-		if len(timestamp) > len(prefix) && timestamp[:len(prefix)] == prefix {
-			timestamp = timestamp[len(prefix):]
-			break
-		}
+	if len(timestamp) > 7 && timestamp[:7] == "backup_" {
+		timestamp = timestamp[7:]
 	}
 
-	for _, suffix := range []string{".sql.gz", ".archive.gz", ".tar.gz"} {
-		if len(timestamp) > len(suffix) && timestamp[len(timestamp)-len(suffix):] == suffix {
-			timestamp = timestamp[:len(timestamp)-len(suffix)]
-			break
-		}
+	if len(timestamp) > 7 && timestamp[len(timestamp)-7:] == ".tar.gz" {
+		timestamp = timestamp[:len(timestamp)-7]
 	}
 
 	return timestamp
 }
 
-func isMetaFile(filename string) bool {
-	info, err := os.Stat(filename)
-	if err != nil {
-		return false
-	}
-
-	if info.IsDir() {
-		return false
-	}
-
-	_, err = time.Parse("2006-01-02T15-04-05Z", info.Name())
-	return err == nil
+func isBackupFile(filename string) bool {
+	return len(filename) > 7 && filename[:7] == "backup_" &&
+		len(filename) > 7 && filename[len(filename)-7:] == ".tar.gz"
 }

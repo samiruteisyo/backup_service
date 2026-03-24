@@ -21,30 +21,37 @@ type RestoreResult struct {
 
 func restoreProject(project *Project, backupPath string, timestamp string) *RestoreResult {
 	projectBackupDir := filepath.Join(backupPath, project.Name)
+	backupFile := filepath.Join(projectBackupDir, fmt.Sprintf("backup_%s.tar.gz", timestamp))
 
-	filesBackup := filepath.Join(projectBackupDir, fmt.Sprintf("files_%s.tar.gz", timestamp))
-	dbBackup := filepath.Join(projectBackupDir, fmt.Sprintf("db_%s.sql.gz", timestamp))
-	dbBackupArchive := filepath.Join(projectBackupDir, fmt.Sprintf("db_%s.archive.gz", timestamp))
-
-	filesExist := fileExists(filesBackup)
-	dbExist := fileExists(dbBackup) || fileExists(dbBackupArchive)
-
-	if !filesExist && !dbExist {
+	if !fileExists(backupFile) {
 		return &RestoreResult{
 			Success:   false,
-			Message:   fmt.Sprintf("No backups found for timestamp '%s'", timestamp),
+			Message:   fmt.Sprintf("No backup found for timestamp '%s'", timestamp),
 			Timestamp: time.Now(),
 		}
 	}
 
 	logActivity(project.Name, "restore", fmt.Sprintf("Starting restore to %s", timestamp), "running")
 
-	if filesExist {
-		logActivity(project.Name, "restore", "Auto-backup before file restore", "running")
-		backupDatabase(project, backupPath)
-		backupFiles(project, backupPath)
-		logActivity(project.Name, "restore", "Auto-backup complete", "success")
+	logActivity(project.Name, "restore", "Auto-backup before restore", "running")
+	backupProject(project, backupPath)
+	logActivity(project.Name, "restore", "Auto-backup complete", "success")
+
+	tmpDir, err := os.MkdirTemp("", "restore-"+project.Name+"-")
+	if err != nil {
+		msg := fmt.Sprintf("Failed to create temp dir: %v", err)
+		logActivity(project.Name, "restore", msg, "error")
+		return &RestoreResult{Success: false, Message: msg, Timestamp: time.Now()}
 	}
+	defer os.RemoveAll(tmpDir)
+
+	if err := extractTarGz(backupFile, tmpDir); err != nil {
+		msg := fmt.Sprintf("Failed to extract backup archive: %v", err)
+		logActivity(project.Name, "restore", msg, "error")
+		return &RestoreResult{Success: false, Message: msg, Timestamp: time.Now()}
+	}
+
+	meta := loadMetaFromDir(tmpDir)
 
 	composeDir := project.ProjectDir
 
@@ -57,10 +64,9 @@ func restoreProject(project *Project, backupPath string, timestamp string) *Rest
 
 	var restored []string
 
-	meta := loadBackupMeta(backupPath, project.Name, timestamp)
-
-	if filesExist {
-		if err := extractTarGz(filesBackup, composeDir); err != nil {
+	filesArchive := filepath.Join(tmpDir, "files.tar.gz")
+	if fileExists(filesArchive) {
+		if err := extractTarGz(filesArchive, composeDir); err != nil {
 			msg := fmt.Sprintf("Failed to extract files: %v", err)
 			logActivity(project.Name, "restore", msg, "error")
 			restartServices(project)
@@ -80,20 +86,21 @@ func restoreProject(project *Project, backupPath string, timestamp string) *Rest
 		restored = append(restored, fmt.Sprintf("git@%s", shortSHA(meta.SHA)))
 	}
 
-	if project.Database != nil {
-		dbFile := dbBackup
-		if !fileExists(dbFile) {
-			dbFile = dbBackupArchive
+	dbFile := ""
+	for _, name := range []string{"db.sql.gz", "db.archive.gz"} {
+		if fileExists(filepath.Join(tmpDir, name)) {
+			dbFile = filepath.Join(tmpDir, name)
+			break
 		}
-		if fileExists(dbFile) {
-			if err := restoreDatabase(project, dbFile); err != nil {
-				msg := fmt.Sprintf("Failed to restore database: %v", err)
-				logActivity(project.Name, "restore", msg, "error")
-				restartServices(project)
-				return &RestoreResult{Success: false, Message: msg, Timestamp: time.Now()}
-			}
-			restored = append(restored, "database")
+	}
+	if project.Database != nil && dbFile != "" {
+		if err := restoreDatabase(project, dbFile); err != nil {
+			msg := fmt.Sprintf("Failed to restore database: %v", err)
+			logActivity(project.Name, "restore", msg, "error")
+			restartServices(project)
+			return &RestoreResult{Success: false, Message: msg, Timestamp: time.Now()}
 		}
+		restored = append(restored, "database")
 	}
 
 	if err := restartServices(project); err != nil {
@@ -114,6 +121,18 @@ func restoreProject(project *Project, backupPath string, timestamp string) *Rest
 		Restored:  restored,
 		Timestamp: time.Now(),
 	}
+}
+
+func loadMetaFromDir(dir string) *BackupMeta {
+	data, err := os.ReadFile(filepath.Join(dir, "meta.json"))
+	if err != nil {
+		return nil
+	}
+	var meta BackupMeta
+	if err := json.Unmarshal(data, &meta); err != nil {
+		return nil
+	}
+	return &meta
 }
 
 func extractTarGz(archivePath, destDir string) error {
@@ -257,7 +276,7 @@ func fileExists(path string) bool {
 }
 
 func logActivity(projectName, opType, message, status string) {
-	activityDir := filepath.Join(loadConfig().BackupPath, projectName)
+	activityDir := filepath.Join(getBackupPath(), projectName)
 	os.MkdirAll(activityDir, 0755)
 
 	activityPath := filepath.Join(activityDir, "activity.json")

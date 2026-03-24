@@ -65,7 +65,7 @@ func handleRestoreCLI(config *Config, arg string) {
 	}
 
 	fmt.Printf("Restoring %s to %s...\n", projectName, timestamp)
-	result := restoreProject(project, config.BackupPath, timestamp)
+	result := restoreProject(project, getBackupPath(), timestamp)
 	if result.Success {
 		fmt.Printf("Success: %s\n", result.Message)
 	} else {
@@ -127,6 +127,8 @@ func runAllBackups(config *Config) {
 		return
 	}
 
+	backupPath := getBackupPath()
+
 	for _, cp := range composePaths {
 		project := parseComposeFile(cp)
 		if project == nil {
@@ -135,19 +137,8 @@ func runAllBackups(config *Config) {
 
 		log.Printf("Backing up %s...", project.Name)
 
-		if project.Database != nil {
-			result := backupDatabase(project, config.BackupPath)
-			log.Printf("  [%s] %s: %s", result.Status, result.Type, result.Message)
-		}
-
-		if len(project.BindMounts) > 0 {
-			result := backupFiles(project, config.BackupPath)
-			log.Printf("  [%s] %s: %s", result.Status, result.Type, result.Message)
-		}
-
-		if project.Database == nil && len(project.BindMounts) == 0 {
-			log.Printf("  [skipped] nothing to backup")
-		}
+		result := backupProject(project, backupPath)
+		log.Printf("  [%s] %s", result.Status, result.Message)
 
 		rotateBackups(config, project.Name)
 	}
