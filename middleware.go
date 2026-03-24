@@ -105,8 +105,6 @@ func authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r)
-
 		token := getSessionToken(r)
 		if !validateSession(token) {
 			if strings.HasPrefix(r.URL.Path, "/api/") {
