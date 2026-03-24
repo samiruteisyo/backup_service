@@ -6,7 +6,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 1 — Project Scaffolding
+## Phase 1 — Project Scaffolding ~~DONE~~
 
 - Initialize Go module (`go.mod`) with dependencies:
   - `gopkg.in/yaml.v3` — compose file parsing
@@ -37,7 +37,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 2 — Types & Config
+## Phase 2 — Types & Config ~~DONE~~
 
 - Define all structs in `types.go`:
   - `Config` — scan path, backup path, schedule, retention, auth credentials, web port
@@ -51,7 +51,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 3 — Discovery & Compose Parser
+## Phase 3 — Discovery & Compose Parser ~~DONE~~
 
 - `discover.go` — scan `SCAN_PATH` for directories with compose files (`docker-compose.yml`, `compose.yml`, `compose.yaml`), skip `SKIP_DIRS`
 - `parser.go` — parse compose YAML:
