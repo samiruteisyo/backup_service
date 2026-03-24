@@ -28,6 +28,8 @@ func backupFiles(project *Project, backupPath string) *BackupResult {
 	timestamp := time.Now().UTC().Format("2006-01-02T15-04-05Z")
 	archivePath := filepath.Join(backupPath, project.Name, fmt.Sprintf("files_%s.tar.gz", timestamp))
 
+	saveBackupMeta(project, backupPath, timestamp)
+
 	if len(project.BindMounts) == 0 {
 		return &BackupResult{
 			ServiceName: project.Name,

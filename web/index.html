@@ -184,6 +184,11 @@ tr:hover td { background: #1e293b40; }
   border-radius: 4px;
 }
 
+.text-muted {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
 .activity-item {
   padding: 10px 18px;
   border-bottom: 1px solid #1e293b;
@@ -473,13 +478,15 @@ function renderBackups(name, backups) {
     el.innerHTML = '<div class="empty-state">No backups yet.</div>';
     return;
   }
-  let html = '<table><thead><tr><th>Type</th><th>File</th><th>Size</th><th>Date</th><th></th></tr></thead><tbody>';
+  let html = '<table><thead><tr><th>Type</th><th>File</th><th>Git</th><th>Size</th><th>Date</th><th></th></tr></thead><tbody>';
   backups.forEach(b => {
     const dotClass = b.type === 'database' ? 'db' : 'files';
     const typeLabel = b.type === 'database' ? 'Database' : 'Files';
+    const gitInfo = b.sha ? `<span class="sha">${b.sha}</span> <span class="text-muted">${b.branch || ''}</span>` : '-';
     html += `<tr>
       <td><span class="type-dot ${dotClass}"></span>${typeLabel}</td>
       <td title="${b.file}">${b.file}</td>
+      <td>${gitInfo}</td>
       <td>${formatBytes(b.size)}</td>
       <td title="${formatFullDate(b.timestamp)}">${formatDate(b.timestamp)}</td>
       <td>

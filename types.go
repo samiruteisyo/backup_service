@@ -78,6 +78,12 @@ type Activity struct {
 	Status    string    `json:"status"`
 }
 
+type BackupMeta struct {
+	SHA       string `json:"sha"`
+	Branch    string `json:"branch"`
+	Timestamp string `json:"timestamp"`
+}
+
 type RotationResult struct {
 	Service string
 	Kept    int

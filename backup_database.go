@@ -18,6 +18,8 @@ func backupDatabase(project *Project, backupPath string) *BackupResult {
 	}
 	archivePath := filepath.Join(backupPath, project.Name, fmt.Sprintf("db_%s.%s", timestamp, extension))
 
+	saveBackupMeta(project, backupPath, timestamp)
+
 	if project.Database == nil {
 		return &BackupResult{
 			ServiceName: project.Name,

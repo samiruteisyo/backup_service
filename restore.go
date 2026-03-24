@@ -13,9 +13,9 @@ import (
 )
 
 type RestoreResult struct {
-	Success   bool     `json:"success"`
-	Message   string   `json:"message"`
-	Restored  []string `json:"restored"`
+	Success   bool      `json:"success"`
+	Message   string    `json:"message"`
+	Restored  []string  `json:"restored"`
 	Timestamp time.Time `json:"timestamp"`
 }
 
@@ -57,6 +57,8 @@ func restoreProject(project *Project, backupPath string, timestamp string) *Rest
 
 	var restored []string
 
+	meta := loadBackupMeta(backupPath, project.Name, timestamp)
+
 	if filesExist {
 		if err := extractTarGz(filesBackup, composeDir); err != nil {
 			msg := fmt.Sprintf("Failed to extract files: %v", err)
@@ -65,6 +67,17 @@ func restoreProject(project *Project, backupPath string, timestamp string) *Rest
 			return &RestoreResult{Success: false, Message: msg, Timestamp: time.Now()}
 		}
 		restored = append(restored, "files")
+	}
+
+	if meta != nil && meta.SHA != "" {
+		logActivity(project.Name, "restore", fmt.Sprintf("Checking out git commit %s", shortSHA(meta.SHA)), "running")
+		if out, err := exec.Command("git", "-C", composeDir, "checkout", meta.SHA).CombinedOutput(); err != nil {
+			msg := fmt.Sprintf("git checkout %s failed: %v\n%s", shortSHA(meta.SHA), err, string(out))
+			logActivity(project.Name, "restore", msg, "error")
+			restartServices(project)
+			return &RestoreResult{Success: false, Message: msg, Restored: restored, Timestamp: time.Now()}
+		}
+		restored = append(restored, fmt.Sprintf("git@%s", shortSHA(meta.SHA)))
 	}
 
 	if project.Database != nil {
@@ -90,6 +103,9 @@ func restoreProject(project *Project, backupPath string, timestamp string) *Rest
 	}
 
 	msg := fmt.Sprintf("Restored %s to %s (%s)", project.Name, timestamp, strings.Join(restored, ", "))
+	if meta != nil {
+		msg = fmt.Sprintf("Restored %s to %s (git %s, %s)", project.Name, timestamp, shortSHA(meta.SHA), strings.Join(restored, ", "))
+	}
 	logActivity(project.Name, "restore", msg, "success")
 
 	return &RestoreResult{

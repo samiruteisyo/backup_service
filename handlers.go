@@ -202,11 +202,14 @@ func handleProjectInfo(w http.ResponseWriter, r *http.Request, project *Project,
 		File      string    `json:"file"`
 		Size      int64     `json:"size"`
 		Timestamp time.Time `json:"timestamp"`
+		SHA       string    `json:"sha"`
+		Branch    string    `json:"branch"`
 	}
 
 	var backups []backupEntry
 	entries, err := os.ReadDir(backupDir)
 	if err == nil {
+		metaCache := make(map[string]*BackupMeta)
 		for _, e := range entries {
 			if e.IsDir() {
 				continue
@@ -225,11 +228,25 @@ func handleProjectInfo(w http.ResponseWriter, r *http.Request, project *Project,
 				bType = "files"
 			}
 
+			ts := extractTimestampFromFilename(name)
+			sha, branch := "", ""
+			if ts != "" {
+				if _, ok := metaCache[ts]; !ok {
+					metaCache[ts] = loadBackupMeta(config.BackupPath, project.Name, ts)
+				}
+				if m := metaCache[ts]; m != nil {
+					sha = shortSHA(m.SHA)
+					branch = m.Branch
+				}
+			}
+
 			backups = append(backups, backupEntry{
 				Type:      bType,
 				File:      name,
 				Size:      info.Size(),
 				Timestamp: info.ModTime(),
+				SHA:       sha,
+				Branch:    branch,
 			})
 		}
 		sort.Slice(backups, func(i, j int) bool {
@@ -251,11 +268,11 @@ func handleProjectInfo(w http.ResponseWriter, r *http.Request, project *Project,
 	gitStatus, _ := getGitStatus(project.ProjectDir)
 
 	writeJSON(w, http.StatusOK, map[string]interface{}{
-		"project":    project,
-		"git_status": gitStatus,
-		"backups":    backups,
+		"project":     project,
+		"git_status":  gitStatus,
+		"backups":     backups,
 		"deployments": deployments,
-		"activity":   activities,
+		"activity":    activities,
 	})
 }
 
