@@ -160,7 +160,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 9 — Entry Point & Scheduling
+## Phase 9 — Entry Point & Scheduling ~~DONE~~
 
 - `main.go` — CLI args and orchestration:
   - `--manual` — run backup for all projects and exit
