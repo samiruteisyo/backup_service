@@ -1,0 +1,13 @@
+[Unit]
+Description=Backup Service
+After=network.target docker.service
+
+[Service]
+Type=simple
+ExecStart=/home/sameer/backup_service/backup-service
+EnvironmentFile=/home/sameer/backup_service/.env
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
