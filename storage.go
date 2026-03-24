@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"sort"
 	"time"
 )
 
@@ -43,27 +44,15 @@ func rotateBackups(config *Config, serviceName string) *RotationResult {
 		})
 	}
 
-	weeklyKept := make(map[string]bool)
+	sort.Slice(backups, func(i, j int) bool {
+		return backups[i].mtime.After(backups[j].mtime)
+	})
 
-	for _, b := range backups {
-		ageDays := time.Since(b.mtime).Hours() / 24
-
-		if ageDays <= float64(config.RetentionDays) {
+	for i, b := range backups {
+		if i < config.MaxBackups {
 			kept++
 			continue
 		}
-
-		if ageDays <= float64(config.RetentionWeeks*7) {
-			weekStart := getStartOfWeek(b.mtime)
-			weekKey := weekStart.Format("2006-01-02")
-
-			if !weeklyKept[weekKey] {
-				weeklyKept[weekKey] = true
-				kept++
-				continue
-			}
-		}
-
 		if err := os.Remove(b.path); err != nil {
 			kept++
 		} else {
@@ -84,12 +73,4 @@ func rotateAllBackups(config *Config, serviceNames []string) []*RotationResult {
 		results[i] = rotateBackups(config, name)
 	}
 	return results
-}
-
-func getStartOfWeek(t time.Time) time.Time {
-	d := t
-	for d.Weekday() != time.Sunday {
-		d = d.AddDate(0, 0, -1)
-	}
-	return time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, d.Location())
 }

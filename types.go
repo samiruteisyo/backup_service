@@ -12,14 +12,11 @@ const (
 )
 
 type Config struct {
-	ScanPath       string
-	Schedule       string
-	RetentionDays  int
-	RetentionWeeks int
-	SkipDirs       []string
-	WebPort        int
-	AuthUser       string
-	AuthPass       string
+	WebPort    int
+	AuthUser   string
+	AuthPass   string
+	MaxBackups int
+	Schedule   string
 }
 
 type DatabaseInfo struct {

@@ -14,7 +14,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 | File | Purpose |
 |------|---------|
 | `main.go` | CLI entry point, cron scheduler |
-| `config.go` | Env var config (`SCAN_PATH`, `BACKUP_PATH`, `WEB_PORT`, etc.) |
+| `config.go` | Env var config (`SCHEDULE`, `WEB_PORT`, `AUTH_*`, etc.) |
 | `types.go` | All structs (`Project`, `BackupMeta`, `Config`, etc.) |
 | `discover.go` | Scan for docker-compose projects |
 | `parser.go` | Parse compose YAML (handles list/map env syntax) |
@@ -50,11 +50,22 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 - `POST /api/projects/:name/deploy`, `POST /api/projects/:name/rollback`
 - `GET /api/download/:project/:file`, `GET /api/projects/:name/status`
 
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WEB_PORT` | `8090` | Port for the web UI |
+| `AUTH_USER` | `admin` | Web UI username |
+| `AUTH_PASS` | `changeme` | Web UI password |
+
 ## Conventions
 
 - MUST ask about git commit and push after EVERY file modification
-- Config defaults: `SCAN_PATH=/home/sameer`, `BACKUP_PATH=/home/sameer/backups`, `WEB_PORT=8090`
-- Backups stored at `BACKUP_PATH/<project>/db_<timestamp>.sql.gz` and `files_<timestamp>.tar.gz`
+- Discovery scans sibling directories of the binary, skipping its own directory
+- Backup path resolves to `<binary_dir>/backups` (no env var, set by `getBackupPath()` in `config.go:41`)
+- Backups stored at `<binary_dir>/backups/<project>/db_<timestamp>.sql.gz` and `files_<timestamp>.tar.gz`
+- Max 5 backups retained per project (newest kept, oldest deleted)
+- Automatic backups run daily at 3am (`0 3 * * *`)
 - Metadata stored alongside as `<timestamp>.json`
 - Compose parser handles both list (`- KEY=val`) and map (`KEY: val`) env syntax
 - Env var resolution supports `${VAR:-default}` and `${VAR:?required}` syntax

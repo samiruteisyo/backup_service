@@ -13,14 +13,16 @@ var composeFiles = []string{
 }
 
 func discoverServices(config *Config) []string {
-	entries, err := os.ReadDir(config.ScanPath)
+	exe, err := os.Executable()
 	if err != nil {
 		return nil
 	}
+	scanDir := filepath.Dir(exe)
+	selfDir := filepath.Base(scanDir)
 
-	skipMap := make(map[string]bool, len(config.SkipDirs))
-	for _, d := range config.SkipDirs {
-		skipMap[d] = true
+	entries, err := os.ReadDir(scanDir)
+	if err != nil {
+		return nil
 	}
 
 	var services []string
@@ -28,11 +30,11 @@ func discoverServices(config *Config) []string {
 		if !entry.IsDir() {
 			continue
 		}
-		if skipMap[entry.Name()] {
+		if entry.Name() == selfDir {
 			continue
 		}
 
-		fullPath := filepath.Join(config.ScanPath, entry.Name())
+		fullPath := filepath.Join(scanDir, entry.Name())
 		for _, cf := range composeFiles {
 			composePath := filepath.Join(fullPath, cf)
 			if _, err := os.Stat(composePath); err == nil {

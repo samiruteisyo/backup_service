@@ -81,7 +81,7 @@ func handleDryRun(config *Config) {
 		return
 	}
 
-	fmt.Printf("Discovered %d projects in %s:\n\n", len(composePaths), config.ScanPath)
+	fmt.Printf("Discovered %d projects:\n\n", len(composePaths))
 
 	for _, cp := range composePaths {
 		project := parseComposeFile(cp)
