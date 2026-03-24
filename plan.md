@@ -82,7 +82,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 5 — Restore Engine
+## Phase 5 — Restore Engine ~~DONE~~
 
 - `restore.go` — restore a project to a specific backup point:
   - Accept backup ID (timestamp) — automatically pairs `db_*` and `files_*` with same timestamp
