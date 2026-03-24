@@ -368,10 +368,35 @@ function toggleProject(name) {
   if (!body) return;
   body.classList.toggle('open');
   chev.classList.toggle('open');
-  if (body.classList.contains('open') && !body.dataset.loaded) {
+  const isOpen = body.classList.contains('open');
+  const expanded = JSON.parse(localStorage.getItem('expanded_projects') || '[]');
+  if (isOpen) {
+    if (!expanded.includes(name)) expanded.push(name);
+  } else {
+    const i = expanded.indexOf(name);
+    if (i > -1) expanded.splice(i, 1);
+  }
+  localStorage.setItem('expanded_projects', JSON.stringify(expanded));
+  if (isOpen && !body.dataset.loaded) {
     body.dataset.loaded = '1';
     loadProjectDetail(name);
   }
+}
+
+function restoreToggleState() {
+  const expanded = JSON.parse(localStorage.getItem('expanded_projects') || '[]');
+  expanded.forEach(name => {
+    const body = document.getElementById('body-' + CSS.escape(name));
+    const chev = document.getElementById('chev-' + CSS.escape(name));
+    if (body && chev) {
+      body.classList.add('open');
+      chev.classList.add('open');
+      if (!body.dataset.loaded) {
+        body.dataset.loaded = '1';
+        loadProjectDetail(name);
+      }
+    }
+  });
 }
 
 function switchTab(project, tab) {
@@ -454,6 +479,7 @@ async function loadProjects() {
     allProjects = await res.json();
     renderStats();
     renderProjects();
+    restoreToggleState();
   } catch {
     document.getElementById('projects').innerHTML = '<div class="empty-state">Failed to load.</div>';
   }
