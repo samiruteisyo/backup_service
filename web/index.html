@@ -15,7 +15,7 @@ body {
 header {
   background: #1e293b;
   border-bottom: 1px solid #334155;
-  padding: 16px 24px;
+  padding: 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -23,42 +23,52 @@ header {
   top: 0;
   z-index: 10;
 }
-header h1 { font-size: 1.125rem; color: #f1f5f9; }
-.header-actions { display: flex; gap: 12px; align-items: center; }
+header h1 { font-size: 1.1rem; color: #f1f5f9; }
+.header-actions { display: flex; gap: 10px; align-items: center; }
 .btn {
-  padding: 8px 16px;
+  padding: 7px 14px;
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.2s;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 .btn-primary { background: #3b82f6; color: white; }
 .btn-primary:hover { background: #2563eb; }
-.btn-primary:disabled { background: #1e40af; cursor: not-allowed; }
+.btn-primary:disabled { background: #1e40af; cursor: not-allowed; opacity: 0.7; }
 .btn-danger { background: #334155; color: #f87171; }
 .btn-danger:hover { background: #475569; }
-.btn-sm { padding: 4px 10px; font-size: 0.75rem; }
+.btn-success { background: #059669; color: white; }
+.btn-success:hover { background: #047857; }
+.btn-success:disabled { background: #065f46; cursor: not-allowed; opacity: 0.7; }
+.btn-warning { background: #d97706; color: white; }
+.btn-warning:hover { background: #b45309; }
+.btn-ghost { background: transparent; color: #94a3b8; border: 1px solid #334155; }
+.btn-ghost:hover { background: #334155; color: #e2e8f0; }
+.btn-sm { padding: 4px 10px; font-size: 0.72rem; }
 
 .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 28px;
 }
 .stat-card {
   background: #1e293b;
   border: 1px solid #334155;
   border-radius: 10px;
-  padding: 20px;
+  padding: 18px;
 }
-.stat-card .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-card .value { font-size: 1.5rem; font-weight: 600; color: #f1f5f9; margin-top: 4px; }
+.stat-card .label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-card .value { font-size: 1.4rem; font-weight: 600; color: #f1f5f9; margin-top: 4px; }
 
-.projects { display: flex; flex-direction: column; gap: 16px; }
+.projects { display: flex; flex-direction: column; gap: 14px; }
 .project-card {
   background: #1e293b;
   border: 1px solid #334155;
@@ -66,7 +76,7 @@ header h1 { font-size: 1.125rem; color: #f1f5f9; }
   overflow: hidden;
 }
 .project-header {
-  padding: 16px 20px;
+  padding: 14px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -74,80 +84,157 @@ header h1 { font-size: 1.125rem; color: #f1f5f9; }
   user-select: none;
 }
 .project-header:hover { background: #334155; }
-.project-name {
-  font-size: 1rem;
-  font-weight: 600;
+.project-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.project-meta {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  font-size: 0.8rem;
-  color: #94a3b8;
-}
-.project-meta .badge {
-  padding: 2px 8px;
+.project-name { font-size: 0.95rem; font-weight: 600; }
+.badge {
+  padding: 2px 7px;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 500;
 }
 .badge-db { background: #7c3aed20; color: #a78bfa; }
 .badge-files { background: #05966920; color: #34d399; }
+.badge-git { background: #2563eb20; color: #60a5fa; }
+.badge-update { background: #d9770620; color: #fbbf24; }
+.project-right {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
 .chevron {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #94a3b8;
   transition: transform 0.2s;
 }
 .chevron.open { transform: rotate(180deg); }
 
-.project-body {
-  display: none;
-  border-top: 1px solid #334155;
-}
+.project-body { display: none; border-top: 1px solid #334155; }
 .project-body.open { display: block; }
 
-.backups-table {
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #334155;
+  padding: 0 18px;
+}
+.tab {
+  padding: 10px 16px;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  user-select: none;
+}
+.tab:hover { color: #e2e8f0; }
+.tab.active { color: #3b82f6; border-bottom-color: #3b82f6; }
+
+.tab-actions {
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #334155;
+  flex-wrap: wrap;
+}
+
+.tab-content { padding: 0; }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+
+table {
   width: 100%;
   border-collapse: collapse;
 }
-.backups-table th {
-  padding: 10px 20px;
+th {
+  padding: 10px 18px;
   text-align: left;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #64748b;
   border-bottom: 1px solid #334155;
 }
-.backups-table td {
-  padding: 10px 20px;
+td {
+  padding: 9px 18px;
   font-size: 0.8rem;
   border-bottom: 1px solid #1e293b;
 }
-.backups-table tr:hover td { background: #1e293b; }
-.type-icon {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
+tr:hover td { background: #1e293b40; }
+
 .type-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   display: inline-block;
+  margin-right: 6px;
 }
 .type-dot.db { background: #a78bfa; }
 .type-dot.files { background: #34d399; }
 
+.sha {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.78rem;
+  background: #0f172a;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.activity-item {
+  padding: 10px 18px;
+  border-bottom: 1px solid #1e293b;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 0.8rem;
+}
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.activity-dot.success { background: #34d399; }
+.activity-dot.error { background: #f87171; }
+.activity-dot.running { background: #fbbf24; }
+.activity-dot.rollback { background: #a78bfa; }
+.activity-dot.skipped { background: #64748b; }
+.activity-message { color: #cbd5e1; }
+.activity-time { color: #64748b; font-size: 0.72rem; margin-top: 2px; }
+
 .empty-state {
   text-align: center;
-  padding: 60px 20px;
+  padding: 48px 20px;
   color: #64748b;
+  font-size: 0.85rem;
 }
-.empty-state .icon { font-size: 2rem; margin-bottom: 12px; }
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: #0008;
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 28px;
+  max-width: 440px;
+  width: 90%;
+}
+.modal h3 { font-size: 1rem; margin-bottom: 12px; }
+.modal p { color: #94a3b8; font-size: 0.85rem; margin-bottom: 20px; line-height: 1.5; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
 .toast {
   position: fixed;
@@ -156,9 +243,9 @@ header h1 { font-size: 1.125rem; color: #f1f5f9; }
   background: #1e293b;
   border: 1px solid #334155;
   border-radius: 10px;
-  padding: 14px 20px;
-  font-size: 0.85rem;
-  z-index: 100;
+  padding: 12px 18px;
+  font-size: 0.82rem;
+  z-index: 200;
   transform: translateY(100px);
   opacity: 0;
   transition: all 0.3s;
@@ -167,17 +254,14 @@ header h1 { font-size: 1.125rem; color: #f1f5f9; }
 .toast.success { border-color: #059669; }
 .toast.error { border-color: #dc2626; }
 
-.loading {
-  text-align: center;
-  padding: 60px;
-  color: #64748b;
-}
+.loading { text-align: center; padding: 60px; color: #64748b; }
 
 @media (max-width: 640px) {
-  .container { padding: 16px; }
+  .container { padding: 14px; }
   .project-header { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .project-meta { flex-wrap: wrap; }
-  .backups-table th, .backups-table td { padding: 8px 12px; font-size: 0.75rem; }
+  .project-right { flex-wrap: wrap; }
+  th, td { padding: 8px 12px; font-size: 0.72rem; }
+  .tab-actions { padding: 10px 12px; }
 }
 </style>
 </head>
@@ -185,7 +269,7 @@ header h1 { font-size: 1.125rem; color: #f1f5f9; }
 <header>
   <h1>Backup Service</h1>
   <div class="header-actions">
-    <button class="btn btn-primary" id="triggerBtn" onclick="triggerBackup()">Run Backup Now</button>
+    <button class="btn btn-success" id="backupAllBtn" onclick="backupAll()">Run All Backups</button>
     <button class="btn btn-danger" onclick="logout()">Logout</button>
   </div>
 </header>
@@ -193,7 +277,18 @@ header h1 { font-size: 1.125rem; color: #f1f5f9; }
 <div class="container">
   <div class="stats" id="stats"></div>
   <div class="projects" id="projects">
-    <div class="loading">Loading backups...</div>
+    <div class="loading">Loading...</div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <p id="modalBody"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn" id="modalConfirmBtn" onclick="confirmModal()">Confirm</button>
+    </div>
   </div>
 </div>
 
@@ -201,6 +296,7 @@ header h1 { font-size: 1.125rem; color: #f1f5f9; }
 
 <script>
 let allProjects = [];
+let modalCallback = null;
 
 function formatBytes(bytes) {
   if (bytes === 0) return '0 B';
@@ -211,178 +307,322 @@ function formatBytes(bytes) {
 }
 
 function formatDate(iso) {
+  if (!iso) return '-';
   const d = new Date(iso);
   const now = new Date();
   const diff = now - d;
   const mins = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-
   if (mins < 1) return 'just now';
   if (mins < 60) return mins + 'm ago';
   if (hours < 24) return hours + 'h ago';
   if (days < 7) return days + 'd ago';
-
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-  });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
 }
 
 function formatFullDate(iso) {
-  return new Date(iso).toLocaleString('en-US', {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  });
+  if (!iso) return '-';
+  return new Date(iso).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-function showToast(message, type = 'success') {
-  const toast = document.getElementById('toast');
-  toast.textContent = message;
-  toast.className = 'toast ' + type + ' show';
-  setTimeout(() => toast.classList.remove('show'), 3000);
+function shortSha(sha) {
+  return sha ? sha.substring(0, 7) : '-';
+}
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+function showModal(title, body, btnText, btnClass, cb) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = body;
+  const btn = document.getElementById('modalConfirmBtn');
+  btn.textContent = btnText;
+  btn.className = 'btn ' + btnClass;
+  modalCallback = cb;
+  document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('show');
+  modalCallback = null;
+}
+
+function confirmModal() {
+  if (modalCallback) modalCallback();
+  closeModal();
 }
 
 function toggleProject(name) {
-  const body = document.getElementById('body-' + name);
-  const chevron = document.getElementById('chevron-' + name);
+  const body = document.getElementById('body-' + CSS.escape(name));
+  const chev = document.getElementById('chev-' + CSS.escape(name));
+  if (!body) return;
   body.classList.toggle('open');
-  chevron.classList.toggle('open');
+  chev.classList.toggle('open');
+  if (body.classList.contains('open') && !body.dataset.loaded) {
+    body.dataset.loaded = '1';
+    loadProjectDetail(name);
+  }
+}
+
+function switchTab(project, tab) {
+  const card = document.querySelector(`#body-${CSS.escape(project)} .tab-content`);
+  card.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  card.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('pane-' + project + '-' + tab).classList.add('active');
+  document.getElementById('tab-' + project + '-' + tab).classList.add('active');
 }
 
 function renderStats() {
-  const totalProjects = allProjects.length;
-  const totalBackups = allProjects.reduce((s, p) => s + p.files.length, 0);
-  const totalSize = allProjects.reduce((s, p) => s + p.totalSize, 0);
-  const projectsWithDb = allProjects.filter(p => p.files.some(f => f.type === 'database')).length;
-
+  const total = allProjects.length;
+  const backups = allProjects.reduce((s, p) => s + p.backup_count, 0);
+  const size = allProjects.reduce((s, p) => s + p.total_size, 0);
+  const updates = allProjects.filter(p => p.git_status && p.git_status.behind > 0).length;
   document.getElementById('stats').innerHTML = `
-    <div class="stat-card">
-      <div class="label">Projects</div>
-      <div class="value">${totalProjects}</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">Total Backups</div>
-      <div class="value">${totalBackups}</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">Total Size</div>
-      <div class="value">${formatBytes(totalSize)}</div>
-    </div>
-    <div class="stat-card">
-      <div class="label">With Database</div>
-      <div class="value">${projectsWithDb}</div>
-    </div>
+    <div class="stat-card"><div class="label">Projects</div><div class="value">${total}</div></div>
+    <div class="stat-card"><div class="label">Total Backups</div><div class="value">${backups}</div></div>
+    <div class="stat-card"><div class="label">Total Size</div><div class="value">${formatBytes(size)}</div></div>
+    <div class="stat-card"><div class="label">Updates Available</div><div class="value">${updates}</div></div>
   `;
 }
 
 function renderProjects() {
-  const container = document.getElementById('projects');
-
-  if (allProjects.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <div class="icon">&#128193;</div>
-        <p>No backups found yet.</p>
-      </div>
-    `;
+  const c = document.getElementById('projects');
+  if (!allProjects.length) {
+    c.innerHTML = '<div class="empty-state">No projects found.</div>';
     return;
   }
-
-  container.innerHTML = allProjects.map(project => {
-    const hasDb = project.files.some(f => f.type === 'database');
-    const hasFiles = project.files.some(f => f.type === 'files');
-
+  c.innerHTML = allProjects.map(p => {
+    const git = p.git_status || {};
+    const updateBadge = git.behind > 0 ? `<span class="badge badge-update">${git.behind} commit${git.behind > 1 ? 's' : ''} behind</span>` : '';
+    const branchBadge = git.branch ? `<span class="badge badge-git">${git.branch}</span>` : '';
+    const dbBadge = p.db_type && p.db_type !== '' ? `<span class="badge badge-db">${p.db_type}</span>` : '';
     return `
       <div class="project-card">
-        <div class="project-header" onclick="toggleProject('${project.name}')">
-          <div class="project-name">
-            ${project.name}
-            ${hasDb ? '<span class="badge badge-db">DB</span>' : ''}
-            ${hasFiles ? '<span class="badge badge-files">Files</span>' : ''}
+        <div class="project-header" onclick="toggleProject('${p.name}')">
+          <div class="project-left">
+            <span class="project-name">${p.name}</span>
+            ${dbBadge} ${branchBadge} ${updateBadge}
           </div>
-          <div class="project-meta">
-            <span>${project.files.length} backup${project.files.length !== 1 ? 's' : ''}</span>
-            <span>${formatBytes(project.totalSize)}</span>
-            ${project.lastBackup ? '<span>Last: ' + formatDate(project.lastBackup) + '</span>' : ''}
-            <span class="chevron" id="chevron-${project.name}">&#9660;</span>
+          <div class="project-right">
+            <span>${p.backup_count} backup${p.backup_count !== 1 ? 's' : ''}</span>
+            <span>${formatBytes(p.total_size)}</span>
+            ${p.last_backup ? `<span>Last: ${formatDate(p.last_backup)}</span>` : ''}
+            ${p.last_deploy ? `<span>Deployed: ${formatDate(p.last_deploy.timestamp)}</span>` : ''}
+            <span class="chevron" id="chev-${p.name}">&#9660;</span>
           </div>
         </div>
-        <div class="project-body" id="body-${project.name}">
-          <table class="backups-table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>File</th>
-                <th>Size</th>
-                <th>Date</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${project.files.map(file => `
-                <tr>
-                  <td>
-                    <span class="type-icon">
-                      <span class="type-dot ${file.type}"></span>
-                      ${file.type === 'database' ? 'Database' : 'Files'}
-                    </span>
-                  </td>
-                  <td title="${file.name}">${file.name}</td>
-                  <td>${formatBytes(file.size)}</td>
-                  <td title="${formatFullDate(file.mtime)}">${formatDate(file.mtime)}</td>
-                  <td>
-                    <a class="btn btn-primary btn-sm" href="/api/download/${project.name}/${file.name}">Download</a>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+        <div class="project-body" id="body-${p.name}">
+          <div class="tabs">
+            <div class="tab active" id="tab-${p.name}-backups" onclick="switchTab('${p.name}','backups')">Backups</div>
+            <div class="tab" id="tab-${p.name}-deployments" onclick="switchTab('${p.name}','deployments')">Deployments</div>
+            <div class="tab" id="tab-${p.name}-activity" onclick="switchTab('${p.name}','activity')">Activity</div>
+          </div>
+          <div class="tab-actions">
+            <button class="btn btn-primary btn-sm" onclick="backupProject('${p.name}')">Backup Now</button>
+            <button class="btn btn-success btn-sm" onclick="deployProject('${p.name}')">Deploy</button>
+          </div>
+          <div class="tab-content">
+            <div class="tab-pane active" id="pane-${p.name}-backups">
+              <div class="loading">Loading...</div>
+            </div>
+            <div class="tab-pane" id="pane-${p.name}-deployments">
+              <div class="loading">Loading...</div>
+            </div>
+            <div class="tab-pane" id="pane-${p.name}-activity">
+              <div class="loading">Loading...</div>
+            </div>
+          </div>
         </div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
 async function loadProjects() {
   try {
     const res = await fetch('/api/projects');
-    if (res.status === 401) {
-      window.location.href = '/login';
-      return;
-    }
+    if (res.status === 401) { window.location.href = '/login'; return; }
     allProjects = await res.json();
     renderStats();
     renderProjects();
-  } catch (err) {
-    document.getElementById('projects').innerHTML = `
-      <div class="empty-state">
-        <p>Failed to load backups.</p>
-      </div>
-    `;
+  } catch {
+    document.getElementById('projects').innerHTML = '<div class="empty-state">Failed to load.</div>';
   }
 }
 
-async function triggerBackup() {
-  const btn = document.getElementById('triggerBtn');
+async function loadProjectDetail(name) {
+  try {
+    const res = await fetch('/api/projects/' + encodeURIComponent(name));
+    if (!res.ok) return;
+    const data = await res.json();
+    renderBackups(name, data.backups || []);
+    renderDeployments(name, data.deployments || []);
+    renderActivity(name, data.activity || []);
+  } catch {
+    // ignore
+  }
+}
+
+function renderBackups(name, backups) {
+  const el = document.getElementById('pane-' + name + '-backups');
+  if (!backups.length) {
+    el.innerHTML = '<div class="empty-state">No backups yet.</div>';
+    return;
+  }
+  let html = '<table><thead><tr><th>Type</th><th>File</th><th>Size</th><th>Date</th><th></th></tr></thead><tbody>';
+  backups.forEach(b => {
+    const dotClass = b.type === 'database' ? 'db' : 'files';
+    const typeLabel = b.type === 'database' ? 'Database' : 'Files';
+    html += `<tr>
+      <td><span class="type-dot ${dotClass}"></span>${typeLabel}</td>
+      <td title="${b.file}">${b.file}</td>
+      <td>${formatBytes(b.size)}</td>
+      <td title="${formatFullDate(b.timestamp)}">${formatDate(b.timestamp)}</td>
+      <td>
+        <a class="btn btn-ghost btn-sm" href="/api/download/${encodeURIComponent(name)}/${encodeURIComponent(b.file)}" target="_blank">Download</a>
+        <button class="btn btn-warning btn-sm" onclick="restoreProject('${name}','${b.file}')">Restore</button>
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderDeployments(name, deployments) {
+  const el = document.getElementById('pane-' + name + '-deployments');
+  if (!deployments.length) {
+    el.innerHTML = '<div class="empty-state">No deployments yet.</div>';
+    return;
+  }
+  let html = '<table><thead><tr><th>SHA</th><th>Branch</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>';
+  deployments.slice().reverse().forEach(d => {
+    const statusClass = d.status === 'success' ? 'badge-db' : d.status === 'rollback' ? 'badge-update' : '';
+    html += `<tr>
+      <td><span class="sha">${shortSha(d.sha)}</span></td>
+      <td>${d.branch || '-'}</td>
+      <td><span class="badge ${statusClass}">${d.status}</span></td>
+      <td title="${formatFullDate(d.timestamp)}">${formatDate(d.timestamp)}</td>
+      <td>
+        ${d.sha ? `<button class="btn btn-warning btn-sm" onclick="rollbackProject('${name}','${d.sha}')">Rollback</button>` : ''}
+      </td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function renderActivity(name, activities) {
+  const el = document.getElementById('pane-' + name + '-activity');
+  if (!activities.length) {
+    el.innerHTML = '<div class="empty-state">No activity yet.</div>';
+    return;
+  }
+  el.innerHTML = activities.map(a => `
+    <div class="activity-item">
+      <span class="activity-dot ${a.status}"></span>
+      <div>
+        <div class="activity-message">${a.type}: ${a.message}</div>
+        <div class="activity-time">${formatFullDate(a.timestamp)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function extractTimestamp(filename) {
+  const match = filename.match(/(?:db|files)_(.+?)(?:\.sql\.gz|\.archive\.gz|\.tar\.gz)$/);
+  return match ? match[1] : '';
+}
+
+function backupProject(name) {
+  const btn = event.target;
   btn.disabled = true;
   btn.textContent = 'Running...';
+  fetch('/api/projects/' + encodeURIComponent(name) + '/backup', { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'success' || data.status === 'skipped') {
+        showToast(data.message || 'Backup complete');
+        setTimeout(() => loadProjectDetail(name), 500);
+      } else {
+        showToast(data.message || 'Backup failed', 'error');
+      }
+    })
+    .catch(() => showToast('Network error', 'error'))
+    .finally(() => { btn.disabled = false; btn.textContent = 'Backup Now'; });
+}
 
+function deployProject(name) {
+  showModal('Deploy ' + name, 'Pull latest changes and rebuild containers?', 'Deploy', 'btn-success', () => {
+    fetch('/api/projects/' + encodeURIComponent(name) + '/deploy', { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) showToast(data.message);
+        else showToast(data.message, 'error');
+        setTimeout(() => loadProjectDetail(name), 500);
+        setTimeout(loadProjects, 1000);
+      })
+      .catch(() => showToast('Network error', 'error'));
+  });
+}
+
+function restoreProject(name, file) {
+  const ts = extractTimestamp(file);
+  showModal('Restore ' + name, `Restore from backup <strong>${file}</strong>?<br><br>This will automatically create a backup before restoring.`, 'Restore', 'btn-warning', () => {
+    fetch('/api/projects/' + encodeURIComponent(name) + '/restore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timestamp: ts }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) showToast(data.message);
+        else showToast(data.message, 'error');
+      })
+      .catch(() => showToast('Network error', 'error'));
+  });
+}
+
+function rollbackProject(name, sha) {
+  showModal('Rollback ' + name, `Roll back to <span class="sha">${shortSha(sha)}</span>?<br><br>This will reset the git repo and rebuild containers.`, 'Rollback', 'btn-warning', () => {
+    fetch('/api/projects/' + encodeURIComponent(name) + '/rollback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sha: sha }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) showToast(data.message);
+        else showToast(data.message, 'error');
+        setTimeout(() => loadProjectDetail(name), 500);
+        setTimeout(loadProjects, 1000);
+      })
+      .catch(() => showToast('Network error', 'error'));
+  });
+}
+
+async function backupAll() {
+  const btn = document.getElementById('backupAllBtn');
+  btn.disabled = true;
+  btn.textContent = 'Running...';
   try {
-    const res = await fetch('/api/trigger', { method: 'POST' });
-    if (res.ok) {
-      showToast('Backup completed successfully');
-      setTimeout(loadProjects, 1000);
-    } else {
-      const data = await res.json();
-      showToast(data.error || 'Backup failed', 'error');
+    let ok = 0, fail = 0;
+    for (const p of allProjects) {
+      try {
+        const res = await fetch('/api/projects/' + encodeURIComponent(p.name) + '/backup', { method: 'POST' });
+        if (res.ok) ok++; else fail++;
+      } catch { fail++; }
     }
+    showToast(ok + ' backups completed' + (fail ? ', ' + fail + ' failed' : ''), fail ? 'error' : 'success');
+    setTimeout(loadProjects, 500);
   } catch {
     showToast('Network error', 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Run Backup Now';
+    btn.textContent = 'Run All Backups';
   }
 }
 

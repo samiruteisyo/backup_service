@@ -142,7 +142,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 8 — Web UI
+## Phase 8 — Web UI ~~DONE~~
 
 - `web/login.html` — login page (same style as current, dark theme)
 - `web/index.html` — full dashboard:
