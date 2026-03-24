@@ -27,7 +27,8 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 | `server.go` | HTTP server, embedded FS, routes |
 | `handlers.go` | All API handlers |
 | `middleware.go` | Auth middleware, session management |
-| `install.sh` | Build & install as systemd service |
+| `build.sh` | Quick rebuild & restart (day-to-day use) |
+| `install.sh` | Full install as systemd service (first-time setup) |
 
 ## Commands
 
@@ -36,13 +37,16 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 ./backup-service --manual     # Run backups for all projects and exit
 ./backup-service --dry-run    # Discover projects, log what would be backed up
 ./backup-service --restore <project> <timestamp>  # Restore from CLI
+./build.sh                    # Rebuild binary + restart service
+./install.sh                  # Build + install systemd unit (first time)
 ```
 
 ## API Routes
 
 - `POST /api/login`, `POST /api/logout`
 - `GET /api/projects`, `GET /api/projects/:name`
-- `POST /api/projects/:name/backup`, `POST /api/projects/:name/restore`
+- `POST /api/projects/:name/backup`, `DELETE /api/projects/:name/backup`
+- `POST /api/projects/:name/restore`
 - `POST /api/projects/:name/deploy`, `POST /api/projects/:name/rollback`
 - `GET /api/download/:project/:file`, `GET /api/projects/:name/status`
 
