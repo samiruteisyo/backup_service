@@ -63,15 +63,15 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 4 — Backup Engine
+## Phase 4 — Backup Engine ~~DONE~~
 
-- `backup/database.go` — for each project with a database:
+- `backup_database.go` — for each project with a database:
   - Check container is running (skip with warning if not)
   - PostgreSQL: `docker exec <container> pg_dump -U <user> <db> | gzip`
   - MySQL/MariaDB: `docker exec <container> mysqldump/mariadb-dump -u <user> -p'<pass>' <db> | gzip`
   - MongoDB: `docker exec <container> mongodump --db <db> --username <user> --password '<pass>' --archive | gzip`
   - Save to `BACKUP_PATH/<project>/db_<timestamp>.sql.gz` (or `.archive.gz` for mongo)
-- `backup/files.go` — for each project with bind mounts:
+- `backup_files.go` — for each project with bind mounts:
   - Get git-tracked files via `git ls-files`, exclude them (always keep `.env` and compose file)
   - Skip: `node_modules`, `.git`, `vendor`, `__pycache__`, `.cache`, `.next`, `dist`, `build`
   - Create `.tar.gz` at `BACKUP_PATH/<project>/files_<timestamp>.tar.gz`
