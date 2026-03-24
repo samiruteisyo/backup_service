@@ -84,7 +84,6 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 
 		summary := projectSummary{
 			Name:     project.Name,
-			DBType:   string(project.Database.Type),
 			HasBuild: project.HasBuild,
 		}
 

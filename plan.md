@@ -186,7 +186,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 11 — Testing & Verification
+## Phase 11 — Testing & Verification ~~DONE~~
 
 - `go build` — verify compilation
 - `--dry-run` — verify project discovery and compose parsing
