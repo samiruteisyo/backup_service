@@ -23,8 +23,6 @@ func startServer(config *Config) {
 	mux.HandleFunc("/api/projects", handleProjects)
 	mux.HandleFunc("/api/projects/", handleProjectDetail)
 
-	mux.HandleFunc("/api/download/", handleDownload)
-
 	staticFS, err := fs.Sub(webFS, "web")
 	if err != nil {
 		log.Fatalf("Failed to create sub filesystem: %v", err)

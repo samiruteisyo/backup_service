@@ -487,7 +487,6 @@ function renderBackups(name, backups) {
       <td>${formatBytes(b.size)}</td>
       <td title="${formatFullDate(b.timestamp)}">${formatDate(b.timestamp)}</td>
       <td>
-        <a class="btn btn-ghost btn-sm" href="/api/download/${encodeURIComponent(name)}/${encodeURIComponent(b.file)}" target="_blank">Download</a>
         <button class="btn btn-warning btn-sm" onclick="restoreProject('${name}','${b.file}')">Restore</button>
         <button class="btn btn-danger btn-sm" onclick="deleteBackup('${name}','${b.file}')">Delete</button>
       </td>

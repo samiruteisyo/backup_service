@@ -19,8 +19,8 @@ type Session struct {
 }
 
 var (
-	sessions   = make(map[string]Session)
-	sessionMu  sync.RWMutex
+	sessions  = make(map[string]Session)
+	sessionMu sync.RWMutex
 )
 
 func generateSessionToken() string {
@@ -105,15 +105,7 @@ func authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if strings.HasPrefix(r.URL.Path, "/api/download/") {
-			token := getSessionToken(r)
-			if !validateSession(token) {
-				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
-				return
-			}
-			next.ServeHTTP(w, r)
-			return
-		}
+		next.ServeHTTP(w, r)
 
 		token := getSessionToken(r)
 		if !validateSession(token) {

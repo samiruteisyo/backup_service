@@ -5,7 +5,7 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-	"io"
+
 	"net/http"
 	"os"
 	"path/filepath"
@@ -450,49 +450,4 @@ func handleDeleteBackup(w http.ResponseWriter, r *http.Request, project *Project
 		"status":  "success",
 		"deleted": filepath.Base(backupFile),
 	})
-}
-
-func handleDownload(w http.ResponseWriter, r *http.Request) {
-	backupPath := getBackupPath()
-
-	pathParts := strings.TrimPrefix(r.URL.Path, "/api/download/")
-	parts := strings.SplitN(pathParts, "/", 2)
-	if len(parts) != 2 {
-		writeError(w, http.StatusBadRequest, "invalid download path")
-		return
-	}
-
-	projectName := parts[0]
-	fileName := parts[1]
-
-	if projectName == "" || fileName == "" {
-		writeError(w, http.StatusBadRequest, "missing project or file")
-		return
-	}
-
-	if strings.Contains(fileName, "..") || strings.Contains(projectName, "..") {
-		writeError(w, http.StatusBadRequest, "invalid path")
-		return
-	}
-
-	filePath := filepath.Join(backupPath, projectName, fileName)
-	if _, err := os.Stat(filePath); err != nil {
-		writeError(w, http.StatusNotFound, "file not found")
-		return
-	}
-
-	f, err := os.Open(filePath)
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to open file")
-		return
-	}
-	defer f.Close()
-
-	stat, _ := f.Stat()
-	w.Header().Set("Content-Type", "application/octet-stream")
-	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
-	if stat != nil {
-		w.Header().Set("Content-Length", fmt.Sprintf("%d", stat.Size()))
-	}
-	io.Copy(w, f)
 }
