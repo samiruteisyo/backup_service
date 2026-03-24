@@ -1,0 +1,22 @@
+{
+  "name": "backup-service",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dry-run": "bun run src/index.ts --dry-run",
+    "manual": "bun run src/index.ts --manual"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "node-cron": "^3.0.3",
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/bun": "^1.2.4",
+    "@types/node": "^22.13.9",
+    "@types/node-cron": "^3.0.11",
+    "typescript": "^5.8.2"
+  }
+}
