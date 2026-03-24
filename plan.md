@@ -98,7 +98,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 6 — Deploy & Rollback Engine
+## Phase 6 — Deploy & Rollback Engine ~~DONE~~
 
 - `deploy.go` — deploy latest changes:
   - Record current git SHA (pre-deploy snapshot)
