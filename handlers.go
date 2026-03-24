@@ -178,6 +178,14 @@ func handleProjectDetail(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusNotFound, "not found")
 		}
 
+	case "DELETE":
+		switch action {
+		case "backup":
+			handleDeleteBackup(w, r, project, config)
+		default:
+			writeError(w, http.StatusNotFound, "not found")
+		}
+
 	default:
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
 	}
@@ -383,6 +391,53 @@ func handleRollback(w http.ResponseWriter, r *http.Request, project *Project, co
 	} else {
 		writeJSON(w, http.StatusBadRequest, result)
 	}
+}
+
+func handleDeleteBackup(w http.ResponseWriter, r *http.Request, project *Project, config *Config) {
+	var body struct {
+		Timestamp string `json:"timestamp"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if body.Timestamp == "" {
+		writeError(w, http.StatusBadRequest, "missing timestamp")
+		return
+	}
+
+	backupDir := filepath.Join(config.BackupPath, project.Name)
+	var deleted []string
+
+	for _, prefix := range []string{"db_", "files_"} {
+		pattern := prefix + body.Timestamp + "*"
+		matches, err := filepath.Glob(filepath.Join(backupDir, pattern))
+		if err != nil {
+			continue
+		}
+		for _, m := range matches {
+			if err := os.Remove(m); err == nil {
+				deleted = append(deleted, filepath.Base(m))
+			}
+		}
+	}
+
+	metaFile := filepath.Join(backupDir, body.Timestamp+".json")
+	if err := os.Remove(metaFile); err == nil {
+		deleted = append(deleted, filepath.Base(metaFile))
+	}
+
+	if len(deleted) == 0 {
+		writeError(w, http.StatusNotFound, "no backup files found for that timestamp")
+		return
+	}
+
+	logActivity(project.Name, "delete", fmt.Sprintf("Deleted backup %s: %s", body.Timestamp, strings.Join(deleted, ", ")), "success")
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"status":  "success",
+		"deleted": deleted,
+	})
 }
 
 func handleDownload(w http.ResponseWriter, r *http.Request) {

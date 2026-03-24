@@ -492,6 +492,7 @@ function renderBackups(name, backups) {
       <td>
         <a class="btn btn-ghost btn-sm" href="/api/download/${encodeURIComponent(name)}/${encodeURIComponent(b.file)}" target="_blank">Download</a>
         <button class="btn btn-warning btn-sm" onclick="restoreProject('${name}','${b.file}')">Restore</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteBackup('${name}','${b.file}')">Delete</button>
       </td>
     </tr>`;
   });
@@ -588,6 +589,28 @@ function restoreProject(name, file) {
       .then(data => {
         if (data.success) showToast(data.message);
         else showToast(data.message, 'error');
+      })
+      .catch(() => showToast('Network error', 'error'));
+  });
+}
+
+function deleteBackup(name, file) {
+  const ts = extractTimestamp(file);
+  showModal('Delete Backup', `Permanently delete backup <strong>${file}</strong>?<br><br>This cannot be undone.`, 'Delete', 'btn-danger', () => {
+    fetch('/api/projects/' + encodeURIComponent(name) + '/backup', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ timestamp: ts }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showToast('Backup deleted');
+          setTimeout(() => loadProjectDetail(name), 500);
+          setTimeout(loadProjects, 1000);
+        } else {
+          showToast(data.error || 'Delete failed', 'error');
+        }
       })
       .catch(() => showToast('Network error', 'error'));
   });
