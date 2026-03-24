@@ -119,7 +119,7 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 
 ---
 
-## Phase 7 — Web Server & Auth
+## Phase 7 — Web Server & Auth ~~DONE~~
 
 - `server.go` — HTTP server on `WEB_PORT`:
   - Cookie-based session auth (SHA256 hashed passwords, random session tokens, 24h TTL)
