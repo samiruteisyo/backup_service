@@ -41,6 +41,17 @@ Go-based operations panel (like Envoyer) that runs as a single binary on the hos
 ./install.sh                  # Build + install systemd unit (first time)
 ```
 
+## Service Management (systemd)
+
+```bash
+sudo systemctl restart backup-service  # Restart the service
+sudo systemctl stop backup-service       # Stop the service
+sudo systemctl start backup-service      # Start the service
+sudo systemctl status backup-service     # Check status
+sudo journalctl -u backup-service -f     # View live logs
+sudo journalctl -u backup-service -n 50   # View last 50 log lines
+```
+
 ## API Routes
 
 - `POST /api/login`, `POST /api/logout`
