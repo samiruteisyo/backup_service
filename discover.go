@@ -18,9 +18,10 @@ func discoverServices(config *Config) []string {
 		return nil
 	}
 	scanDir := filepath.Dir(exe)
+	parentDir := filepath.Dir(scanDir)
 	selfDir := filepath.Base(scanDir)
 
-	entries, err := os.ReadDir(scanDir)
+	entries, err := os.ReadDir(parentDir)
 	if err != nil {
 		return nil
 	}
@@ -34,7 +35,7 @@ func discoverServices(config *Config) []string {
 			continue
 		}
 
-		fullPath := filepath.Join(scanDir, entry.Name())
+		fullPath := filepath.Join(parentDir, entry.Name())
 		for _, cf := range composeFiles {
 			composePath := filepath.Join(fullPath, cf)
 			if _, err := os.Stat(composePath); err == nil {
