@@ -473,16 +473,43 @@ function renderProjects() {
 }
 
 async function loadProjects() {
-  try {
-    const res = await fetch('/api/projects');
-    if (res.status === 401) { window.location.href = '/login'; return; }
-    allProjects = await res.json();
-    renderStats();
-    renderProjects();
-    restoreToggleState();
-  } catch {
-    document.getElementById('projects').innerHTML = '<div class="empty-state">Failed to load.</div>';
+  const projectsEl = document.getElementById('projects');
+  projectsEl.innerHTML = '<div class="empty-state">Loading...</div>';
+
+  const maxRetries = 3;
+  let lastError = 'Unknown error';
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch('/api/projects');
+      if (res.status === 401) {
+        window.location.href = '/login';
+        return;
+      }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        lastError = errData.error || `Server error (${res.status})`;
+        if (attempt < maxRetries) {
+          await new Promise(r => setTimeout(r, 500 * attempt));
+          continue;
+        }
+        projectsEl.innerHTML = `<div class="empty-state">Failed to load: ${lastError}</div>`;
+        return;
+      }
+      allProjects = await res.json();
+      if (!allProjects) allProjects = [];
+      renderStats();
+      renderProjects();
+      restoreToggleState();
+      return;
+    } catch (e) {
+      lastError = e.message || 'Network error';
+      if (attempt < maxRetries) {
+        await new Promise(r => setTimeout(r, 500 * attempt));
+      }
+    }
   }
+  projectsEl.innerHTML = `<div class="empty-state">Failed to load after ${maxRetries} attempts: ${lastError}</div>`;
 }
 
 async function loadProjectDetail(name) {

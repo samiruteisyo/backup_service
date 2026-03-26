@@ -77,7 +77,7 @@ func handleProjects(w http.ResponseWriter, r *http.Request) {
 		TotalSize   int64       `json:"total_size"`
 	}
 
-	var summaries []projectSummary
+	summaries := make([]projectSummary, 0)
 
 	for _, cp := range composePaths {
 		project := parseComposeFile(cp)
