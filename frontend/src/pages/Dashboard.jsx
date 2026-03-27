@@ -49,7 +49,7 @@ export default function Dashboard({ showToast }) {
   const loadProjects = useCallback(async () => {
     try {
       const data = await api.getProjects();
-      setProjects(data.projects || []);
+      setProjects(Array.isArray(data) ? data : (data.projects || []));
     } catch (err) {
       showToast('Failed to load projects', 'error');
     } finally {
