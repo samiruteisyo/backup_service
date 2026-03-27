@@ -175,50 +175,54 @@ export default function Dashboard({ showToast }) {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1>Backup Service</h1>
-        <div className="header-actions">
-          <Button onClick={handleBackupAll} loading={actionLoading.backupAll}>
-            Run All Backups
-          </Button>
-          <Button variant="ghost" onClick={logout}>Logout</Button>
+        <div className="dashboard-container">
+          <h1>Backup Service</h1>
+          <div className="header-actions">
+            <Button onClick={handleBackupAll} loading={actionLoading.backupAll}>
+              Run All Backups
+            </Button>
+            <Button variant="ghost" onClick={logout}>Logout</Button>
+          </div>
         </div>
       </header>
 
-      <div className="stats-row">
-        <Card><CardBody><div className="stat-card">
-          <div className="stat-value">{projects.length}</div>
-          <div className="stat-label">Projects</div>
-        </div></CardBody></Card>
-        <Card><CardBody><div className="stat-card">
-          <div className="stat-value">{totalBackups}</div>
-          <div className="stat-label">Total Backups</div>
-        </div></CardBody></Card>
-        <Card><CardBody><div className="stat-card">
-          <div className="stat-value">{formatBytes(totalSize)}</div>
-          <div className="stat-label">Total Size</div>
-        </div></CardBody></Card>
-      </div>
+      <div className="dashboard-container">
+        <div className="stats-row">
+          <Card><CardBody><div className="stat-card">
+            <div className="stat-value">{projects.length}</div>
+            <div className="stat-label">Projects</div>
+          </div></CardBody></Card>
+          <Card><CardBody><div className="stat-card">
+            <div className="stat-value">{totalBackups}</div>
+            <div className="stat-label">Total Backups</div>
+          </div></CardBody></Card>
+          <Card><CardBody><div className="stat-card">
+            <div className="stat-value">{formatBytes(totalSize)}</div>
+            <div className="stat-label">Total Size</div>
+          </div></CardBody></Card>
+        </div>
 
-      <div className="project-list">
-        {projects.length === 0 ? (
-          <div className="empty-state">No projects found</div>
-        ) : (
-          projects.map((project) => (
-            <ProjectCard
-              key={project.name}
-              project={project}
-              detail={projectDetails[project.name]}
-              expanded={expandedProjects[project.name]}
-              onToggle={() => toggleProject(project.name)}
-              actionLoading={actionLoading}
-              onBackup={handleBackup}
-              onDeploy={handleDeploy}
-              onRestore={(ts) => setConfirmModal({ type: 'restore', name: project.name, timestamp: ts })}
-              onDelete={(ts) => setConfirmModal({ type: 'delete', name: project.name, timestamp: ts })}
-              onRollback={(sha) => setConfirmModal({ type: 'rollback', name: project.name, sha })}
-            />
-          ))
-        )}
+        <div className="project-list">
+          {projects.length === 0 ? (
+            <div className="empty-state">No projects found</div>
+          ) : (
+            projects.map((project) => (
+              <ProjectCard
+                key={project.name}
+                project={project}
+                detail={projectDetails[project.name]}
+                expanded={expandedProjects[project.name]}
+                onToggle={() => toggleProject(project.name)}
+                actionLoading={actionLoading}
+                onBackup={handleBackup}
+                onDeploy={handleDeploy}
+                onRestore={(ts) => setConfirmModal({ type: 'restore', name: project.name, timestamp: ts })}
+                onDelete={(ts) => setConfirmModal({ type: 'delete', name: project.name, timestamp: ts })}
+                onRollback={(sha) => setConfirmModal({ type: 'rollback', name: project.name, sha })}
+              />
+            ))
+          )}
+        </div>
       </div>
 
       {confirmModal && (
