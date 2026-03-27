@@ -1,17 +1,10 @@
-# Frontend React Conversion Plan
+# Frontend React Conversion - COMPLETED
 
 ## Overview
 
-Convert the vanilla HTML/CSS/JS frontend to ReactJS while keeping Go backend unchanged. The embedded `web/` directory will be replaced with a React SPA built via Vite.
+Converted the vanilla HTML/CSS/JS frontend to ReactJS. The Go backend remains unchanged.
 
-## Current State
-
-- **Location**: `web/` directory with `index.html` and `login.html`
-- **Tech**: Pure vanilla HTML, CSS (inline), JavaScript (inline)
-- **Auth**: Cookie-based sessions
-- **API**: REST endpoints returning JSON
-
-## Target Architecture
+## Completed Architecture
 
 ```
 frontend/
@@ -22,50 +15,57 @@ frontend/
 │   ├── main.jsx
 │   ├── App.jsx
 │   ├── index.css
-│   ├── api/           # API client functions
+│   ├── api/
 │   │   └── client.js
-│   ├── components/    # Reusable UI components
-│   │   ├── Button.jsx
-│   │   ├── Card.jsx
-│   │   ├── Modal.jsx
-│   │   ├── Toast.jsx
-│   │   ├── Tabs.jsx
-│   │   └── Badge.jsx
-│   ├── pages/         # Route pages
-│   │   ├── Login.jsx
-│   │   └── Dashboard.jsx
-│   └── hooks/         # Custom hooks
-│       └── useApi.js
+│   ├── components/
+│   │   ├── Button.jsx / Button.css
+│   │   ├── Card.jsx / Card.css
+│   │   ├── Modal.jsx / Modal.css
+│   │   ├── Toast.jsx / Toast.css
+│   │   ├── Tabs.jsx / Tabs.css
+│   │   ├── Badge.jsx / Badge.css
+│   │   └── index.js
+│   ├── pages/
+│   │   ├── Login.jsx / Login.css
+│   │   ├── Dashboard.jsx / Dashboard.css
+│   │   └── index.js
+│   └── hooks/
+│       ├── useApi.js
+│       ├── useAuth.jsx
+│       └── index.js
 ```
 
-## Components to Build
+## Components Built
 
 | Component | Purpose |
 |-----------|---------|
 | `Login` | Login form, session handling |
 | `Dashboard` | Main layout with header, stats, project list |
 | `ProjectCard` | Expandable card per project with tabs |
-| `ProjectTabs` | Backups, Deployments, Activity tabs |
 | `BackupList` | Table of backups with restore/delete actions |
 | `DeploymentList` | Table of deployments with rollback action |
 | `ActivityLog` | Activity feed display |
 | `StatCard` | Summary statistics display |
 | `Modal` | Confirmation dialogs |
 | `Toast` | Success/error notifications |
+| `Button` | Variants: primary/secondary/danger/success/ghost |
+| `Card` | Card, CardHeader, CardBody, CardFooter |
+| `Tabs` | Tab switching with content panels |
+| `Badge` | Status badges |
 
 ## State Management
 
-- **React Context** for global auth state (user, login, logout)
+- **React Context** for global auth state (`useAuth` hook)
 - **Local state** (`useState`) for component-specific data
 - **Custom hooks** for API calls with loading/error handling
 
 ## API Integration
 
-Existing endpoints remain unchanged. API client module wraps `fetch()`:
+Existing endpoints unchanged. API client in `frontend/src/api/client.js`:
 
 ```js
 // Auth
-POST /api/login { username, password } → { user }
+POST /api/login { username, password }
 POST /api/logout
 
 // Projects
@@ -80,43 +80,32 @@ POST /api/projects/:name/rollback { sha }
 
 ## Build & Embed Process
 
-1. Build React app: `npm run build` → `dist/` folder
-2. Embed `dist/` into binary via updated `go:embed`
-3. Serve from Go same as current (`http.FileServer`)
+1. `npm run build` in `frontend/` → `dist/` folder
+2. Build script copies `dist/` to project root
+3. Go embeds `dist/` via `go:embed dist`
+4. Binary serves React SPA with fallback to `index.html`
 
-## Migration Steps
+## Commands
 
-1. **Initialize Vite project** in `frontend/` directory
-2. **Create component library** (Button, Card, Modal, Toast, Tabs, Badge)
-3. **Build API client** with auth handling
-4. **Implement Login page** with session check
-5. **Build Dashboard** with stat cards
-6. **Build ProjectCard** with expandable sections and tabs
-7. **Implement all CRUD operations** (backup, restore, deploy, rollback, delete)
-8. **Add styling** matching current dark theme
-9. **Test in dev mode** with `vite --port 5173` proxying to Go server
-10. **Build and embed** into Go binary
-11. **Update `server.go`** to serve React app (index.html fallback for SPA routing)
+```bash
+./build.sh              # Build React + Go binary
+./backup-service        # Run combined app
 
-## Go Server Updates Required
+# Development
+cd frontend && npm run dev   # React dev server (proxies /api to localhost:8090)
+```
 
-1. Change `go:embed web` to `go:embed dist`
-2. Add SPA fallback handler for client-side routing
-3. Update `install.sh`/`build.sh` to include React build step
+## Changes Made
 
-## Post-Conversion Cleanup
+| File | Change |
+|------|--------|
+| `server.go` | Embed `dist/`, SPA fallback handler |
+| `handlers.go` | Removed `handleLoginPage` |
+| `build.sh` | Added React build step |
+| `.gitignore` | Added `dist/` |
+| `web/` | **Deleted** (replaced by React) |
 
-- Remove `web/` directory
-- Remove inline styles from converted components
-- Add `frontend/` to `.gitignore`
-- Update README with new dev workflow
+## Commits
 
-## Time Estimate
-
-| Phase | Tasks |
-|-------|-------|
-| Setup & Components | 1-2 hours |
-| Pages & Logic | 2-3 hours |
-| Testing & Polish | 1-2 hours |
-| Go Integration | 30 min |
-| **Total** | 5-8 hours |
+- `62811f0` Phase 1: Initialize React frontend with Vite and component library
+- `db76abf` Phase 2: Integrate React SPA with Go backend
