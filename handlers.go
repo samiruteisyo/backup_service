@@ -14,14 +14,6 @@ import (
 	"time"
 )
 
-func handleLoginPage(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
-		http.Redirect(w, r, "/login", http.StatusFound)
-		return
-	}
-	http.ServeFileFS(w, r, webFS, "web/login.html")
-}
-
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		writeError(w, http.StatusMethodNotAllowed, "method not allowed")

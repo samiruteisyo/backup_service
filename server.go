@@ -6,28 +6,39 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"strings"
 )
 
-//go:embed web
-var webFS embed.FS
+//go:embed dist
+var distFS embed.FS
 
 func startServer(config *Config) {
 	startSessionCleanup()
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/login", handleLoginPage)
 	mux.HandleFunc("/api/login", handleLogin)
 	mux.HandleFunc("/api/logout", handleLogout)
-
 	mux.HandleFunc("/api/projects", handleProjects)
 	mux.HandleFunc("/api/projects/", handleProjectDetail)
 
-	staticFS, err := fs.Sub(webFS, "web")
+	staticFS, err := fs.Sub(distFS, "dist")
 	if err != nil {
 		log.Fatalf("Failed to create sub filesystem: %v", err)
 	}
-	mux.Handle("/", http.FileServer(http.FS(staticFS)))
+
+	fs := http.FileServer(http.FS(staticFS))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/api") {
+			http.NotFound(w, r)
+			return
+		}
+		if _, err := distFS.Open("dist" + r.URL.Path); err != nil {
+			http.ServeFileFS(w, r, distFS, "dist/index.html")
+			return
+		}
+		fs.ServeHTTP(w, r)
+	})
 
 	chain := loggingMiddleware(corsMiddleware(authMiddleware(mux)))
 
