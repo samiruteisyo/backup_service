@@ -5,8 +5,8 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"fmt"
-
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"sort"
@@ -174,7 +174,11 @@ func handleProjectDetail(w http.ResponseWriter, r *http.Request) {
 	case "DELETE":
 		switch action {
 		case "backup":
-			handleDeleteBackup(w, r, project, config)
+			timestamp := ""
+			if len(pathParts) > 2 {
+				timestamp, _ = url.PathUnescape(pathParts[2])
+			}
+			handleDeleteBackup(w, r, project, config, timestamp)
 		default:
 			writeError(w, http.StatusNotFound, "not found")
 		}
@@ -413,16 +417,8 @@ func handleRollback(w http.ResponseWriter, r *http.Request, project *Project, co
 	}
 }
 
-func handleDeleteBackup(w http.ResponseWriter, r *http.Request, project *Project, config *Config) {
-	var body struct {
-		Timestamp string `json:"timestamp"`
-	}
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		writeError(w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	if body.Timestamp == "" {
+func handleDeleteBackup(w http.ResponseWriter, r *http.Request, project *Project, config *Config, timestamp string) {
+	if timestamp == "" {
 		writeError(w, http.StatusBadRequest, "missing timestamp")
 		return
 	}
@@ -430,14 +426,14 @@ func handleDeleteBackup(w http.ResponseWriter, r *http.Request, project *Project
 	backupPath := getBackupPath()
 	backupDir := filepath.Join(backupPath, project.Name)
 
-	backupFile := filepath.Join(backupDir, fmt.Sprintf("backup_%s.tar.gz", body.Timestamp))
+	backupFile := filepath.Join(backupDir, fmt.Sprintf("backup_%s.tar.gz", timestamp))
 
 	if err := os.Remove(backupFile); err != nil {
 		writeError(w, http.StatusNotFound, "no backup file found for that timestamp")
 		return
 	}
 
-	logActivity(project.Name, "delete", fmt.Sprintf("Deleted backup %s", body.Timestamp), "success")
+	logActivity(project.Name, "delete", fmt.Sprintf("Deleted backup %s", timestamp), "success")
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"status":  "success",
 		"deleted": filepath.Base(backupFile),

@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 
-if [ "${DEV_MODE:-0}" = "1" ]; then
+if [ "${ENVIRONMENT:-production}" = "development" ]; then
     pkill -f "backup-service" 2>/dev/null || true
     sleep 1
     go build -o backup-service . && ./backup-service
