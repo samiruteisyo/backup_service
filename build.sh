@@ -7,3 +7,6 @@ echo "=> Building Go API backend..."
 go build -o backup-service .
 
 echo "=> Done!"
+
+echo "=> Starting server..."
+exec ./backup-service

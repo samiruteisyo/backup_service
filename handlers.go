@@ -31,7 +31,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if creds.Username != config.AuthUser || hashPassword(creds.Password) != hashPassword(config.AuthPass) {
+	if creds.Username != config.AuthUser || creds.Password != config.AuthPass {
 		writeError(w, http.StatusUnauthorized, "invalid credentials")
 		return
 	}

@@ -52,6 +52,14 @@ sudo journalctl -u backup-service -f     # View live logs
 sudo journalctl -u backup-service -n 50   # View last 50 log lines
 ```
 
+## Development vs Production
+
+**Development:** Run directly via `./build.sh` (rebuilds binary + runs in foreground). View logs in terminal output.
+
+**Production:** Runs as systemd service. View logs via `journalctl`.
+
+Use `./build.sh` for day-to-day development; use systemd commands only on deployed servers.
+
 ## API Routes
 
 - `POST /api/login`, `POST /api/logout`

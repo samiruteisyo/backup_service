@@ -4,7 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"embed"
 )
+
+//go:embed dist
+var frontendFiles embed.FS
 
 func startServer(config *Config) {
 	startSessionCleanup()
@@ -15,6 +20,8 @@ func startServer(config *Config) {
 	mux.HandleFunc("/api/logout", handleLogout)
 	mux.HandleFunc("/api/projects", handleProjects)
 	mux.HandleFunc("/api/projects/", handleProjectDetail)
+
+	mux.Handle("/", http.FileServer(http.FS(frontendFiles)))
 
 	chain := loggingMiddleware(corsMiddleware(authMiddleware(mux)))
 

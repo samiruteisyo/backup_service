@@ -7,10 +7,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/robfig/cron/v3"
 )
 
 func main() {
+	godotenv.Load()
+
 	manual := flag.Bool("manual", false, "run backup for all projects and exit")
 	dryRun := flag.Bool("dry-run", false, "discover projects and log what would be backed up")
 	restoreProject := flag.String("restore", "", "restore a project (format: <project>:<timestamp>)")
